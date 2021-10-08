@@ -205,6 +205,9 @@ declare namespace IORedis {
         bitcount(key: KeyType): Promise<number>;
         bitcount(key: KeyType, start: number, end: number): Promise<number>;
 
+        bitfield(key: KeyType, args: ValueType, callback: Callback<number[]>): void;
+        bitfield(key: KeyType, args: ValueType): Promise<number[]>;
+
         get(key: KeyType, callback: Callback<string | null>): void;
         get(key: KeyType): Promise<string | null>;
 
@@ -777,8 +780,8 @@ declare namespace IORedis {
         zcard(key: KeyType, callback: Callback<number>): void;
         zcard(key: KeyType): Promise<number>;
 
-        zscore(key: KeyType, member: string, callback: Callback<string>): void;
-        zscore(key: KeyType, member: string): Promise<string>;
+        zscore(key: KeyType, member: string, callback: Callback<string | null>): void;
+        zscore(key: KeyType, member: string): Promise<string | null>;
 
         zrank(key: KeyType, member: string, callback: Callback<number | null>): void;
         zrank(key: KeyType, member: string): Promise<number | null>;
@@ -1193,6 +1196,8 @@ declare namespace IORedis {
         quit(callback: Callback<Ok>): void;
         quit(): Promise<Ok>;
 
+        scan(cursor: number | string): Promise<[string, string[]]>;
+
         scan(cursor: number | string, matchOption: 'match' | 'MATCH', pattern: string): Promise<[string, string[]]>;
         scan(
             cursor: number | string,
@@ -1264,6 +1269,8 @@ declare namespace IORedis {
 
         xclaim: OverloadedKeyCommand<ValueType, Array<[string, string[]]>>;
 
+        xautoclaim: OverloadedSubCommand<ValueType,  Array<[string, string[]]>>;
+
         xdel: OverloadedKeyCommand<string, number>;
 
         xgroup: OverloadedSubCommand<ValueType, Ok>;
@@ -1305,6 +1312,8 @@ declare namespace IORedis {
 
         bitcount(key: KeyType, callback?: Callback<number>): Pipeline;
         bitcount(key: KeyType, start: number, end: number, callback?: Callback<number>): Pipeline;
+
+        bitfield(key: KeyType, args: ValueType, callback?: Callback<number[]>): Pipeline;
 
         get(key: KeyType, callback?: Callback<string>): Pipeline;
         getBuffer(key: KeyType, callback?: Callback<Buffer>): Pipeline;
@@ -2046,6 +2055,11 @@ declare namespace IORedis {
          * default: 10000.
          */
         connectTimeout?: number | undefined;
+        /**
+         * The milliseconds before socket.destroy() is called after socket.end() if the connection remains half-open during disconnection.
+         * default: 2000
+         */
+        disconnectTimeout?: number | undefined;
         /**
          * After reconnected, if the previous connection was in the subscriber mode, client will auto re-subscribe these channels.
          * default: true.

@@ -6,7 +6,6 @@
 //                 Rafal2228           <https://github.com/rafal2228>
 //                 Beeno Tung          <https://github.com/beenotung>
 //                 Joe Flateau         <https://github.com/joeflateau>
-//                 Nikita Koryabkin    <https://github.com/Apologiz>
 //                 timhwang21          <https://github.com/timhwang21>
 //                 supaiku0            <https://github.com/supaiku0>
 //                 Anders Kaseorg      <https://github.com/andersk>
@@ -90,6 +89,42 @@ declare module "node-forge" {
             gcd(a: BigInteger): BigInteger;
             modInverse(m: BigInteger): BigInteger;
             isProbablePrime(t: number): boolean;
+        }
+    }
+
+    namespace kem {
+        namespace rsa {
+            interface kem {
+                encrypt(publicKey: pki.rsa.PublicKey, keyLength: number): EncryptResult;
+                decrypt(privateKey: pki.rsa.PrivateKey, encapsulation: string, keyLength: number): string;
+            }
+            interface random {
+                getBytesSync(count: number): Bytes;
+            }
+            interface Options {
+                prng?: random | undefined;
+            }
+
+            function create(kdf: md.MessageDigest, options?: Options): kem;
+        }
+
+        interface EncryptResult {
+            encapsulation: string;
+            key: string;
+        }
+
+        function encrypt(publicKey: pki.rsa.PublicKey, keyLength: number): EncryptResult;
+        function decrypt(privateKey: pki.rsa.PrivateKey, encapsulation: string, keyLength: number): string;
+
+        class kdf1 implements md.MessageDigest {
+            constructor(md: md.MessageDigest, digestLength?: number);
+            update(msg: string, encoding?: Encoding): md.MessageDigest;
+            digest(): util.ByteStringBuffer;
+        }
+        class kdf2 implements md.MessageDigest {
+            constructor(md: md.MessageDigest, digestLength?: number);
+            update(msg: string, encoding?: Encoding): md.MessageDigest;
+            digest(): util.ByteStringBuffer;
         }
     }
 
@@ -502,7 +537,7 @@ declare module "node-forge" {
     }
 
     namespace random {
-        function getBytes(count: number, callback?: (err: Error | null, bytes: Bytes) => any): Bytes;
+        function getBytes(count: number, callback?: (err: Error | null, bytes: Bytes) => any): void;
         function getBytesSync(count: number): Bytes;
         type CB = (_: any, seed: string) => void;
         interface Random {

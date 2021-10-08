@@ -1,4 +1,4 @@
-// Type definitions for react-native 0.64
+// Type definitions for react-native 0.65
 // Project: https://github.com/facebook/react-native
 // Definitions by: Eloy Durán <https://github.com/alloy>
 //                 HuHuanming <https://github.com/huhuanming>
@@ -41,6 +41,8 @@
 //                 Alexey Molchan <https://github.com/alexeymolchan>
 //                 Alex Brazier <https://github.com/alexbrazier>
 //                 Arafat Zahan <https://github.com/kuasha420>
+//                 Pedro Hernández <https://github.com/phvillegas>
+//                 Brett Lindsay <https://github.com/bdlindsay>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 3.0
 
@@ -491,6 +493,12 @@ export interface PressableProps extends AccessibilityProps, Omit<ViewProps, 'sty
     children?: React.ReactNode | ((state: PressableStateCallbackType) => React.ReactNode) | undefined;
 
     /**
+     * Whether a press gesture can be interrupted by a parent gesture such as a
+     * scroll event. Defaults to true.
+     */
+    cancelable?: null | boolean | undefined;
+
+    /**
      * Duration (in milliseconds) from `onPressIn` before `onLongPress` is called.
      */
     delayLongPress?: null | number | undefined;
@@ -589,6 +597,8 @@ export namespace AppRegistry {
 
     function runApplication(appKey: string, appParameters: any): void;
 
+    function setSurfaceProps(appKey: string, appParameters: any, displayMode?: number): void;
+
     function registerHeadlessTask(appKey: string, task: TaskProvider): void;
 
     function getRunnable(appKey: string): Runnable | undefined;
@@ -604,7 +614,7 @@ export type LayoutAnimationType =
 
 export type LayoutAnimationTypes = {
     [type in LayoutAnimationType]: type;
-}
+};
 
 export type LayoutAnimationProperty =
     | 'opacity'
@@ -614,7 +624,7 @@ export type LayoutAnimationProperty =
 
 export type LayoutAnimationProperties = {
     [prop in LayoutAnimationProperty]: prop;
-}
+};
 
 export interface LayoutAnimationAnim {
     duration?: number | undefined;
@@ -1043,6 +1053,9 @@ export interface TextProps extends TextPropsIOS, TextPropsAndroid, Accessibility
      */
     onPress?: ((event: GestureResponderEvent) => void) | undefined;
 
+    onPressIn?: ((event: GestureResponderEvent) => void) | undefined;
+    onPressOut?: ((event: GestureResponderEvent) => void) | undefined;
+
     /**
      * This function is called on long press.
      * e.g., `onLongPress={this.increaseSize}>``
@@ -1264,7 +1277,8 @@ export interface TextInputIOSProps {
         | 'username'
         | 'password'
         | 'newPassword'
-        | 'oneTimeCode' | undefined;
+        | 'oneTimeCode'
+        | undefined;
 
     /**
      * If false, scrolling of the text view will be disabled. The default value is true. Only works with multiline={true}
@@ -1312,7 +1326,8 @@ export interface TextInputAndroidProps {
         | 'street-address'
         | 'tel'
         | 'username'
-        | 'off' | undefined;
+        | 'off'
+        | undefined;
 
     /**
      * Determines whether the individual fields in your app should be included in a
@@ -3016,6 +3031,13 @@ export interface DatePickerIOSProps extends ViewProps {
      * For instance, to show times in Pacific Standard Time, pass -7 * 60.
      */
     timeZoneOffsetInMinutes?: number | undefined;
+
+    /**
+     * The date picker style
+     * This is only available on devices with iOS 14.0 and later.
+     * 'spinner' is the default style if this prop isn't set.
+     */
+    pickerStyle?: 'compact' | 'spinner' | 'inline' | undefined;
 }
 
 declare class DatePickerIOSComponent extends React.Component<DatePickerIOSProps> {}
@@ -4032,6 +4054,7 @@ export class Image extends ImageBase {
         failure?: (error: any) => void,
     ): any;
     static prefetch(url: string): Promise<boolean>;
+    static prefetchWithMetadata(url: string, queryRootName: string, rootTag?: number): Promise<boolean>;
     static abortPrefetch?(requestId: number): void;
     static queryCache?(urls: string[]): Promise<{ [url: string]: 'memory' | 'disk' | 'disk/memory' }>;
 
@@ -5852,7 +5875,8 @@ export interface TabBarIOSItemProps extends ViewProps {
         | 'most-viewed'
         | 'recents'
         | 'search'
-        | 'top-rated' | undefined;
+        | 'top-rated'
+        | undefined;
 
     /**
      * Text that appears under the icon. It is ignored when a system icon is defined.
@@ -6022,7 +6046,7 @@ interface PlatformMacOSStatic extends PlatformStatic {
     Version: string;
     constants: PlatformConstants & {
         osVersion: string;
-    }
+    };
 }
 
 interface PlatformWindowsOSStatic extends PlatformStatic {
@@ -6030,7 +6054,7 @@ interface PlatformWindowsOSStatic extends PlatformStatic {
     Version: number;
     constants: PlatformConstants & {
         osVersion: number;
-    }
+    };
 }
 
 interface PlatformWebStatic extends PlatformStatic {
@@ -6045,6 +6069,8 @@ export type ProcessedColorValue = number | OpaqueColorValue;
 type DynamicColorIOSTuple = {
     light: ColorValue;
     dark: ColorValue;
+    highContrastLight?: ColorValue | undefined;
+    highContrastDark?: ColorValue | undefined;
 };
 
 /**
@@ -6129,10 +6155,11 @@ export interface Dimensions {
     addEventListener(
         type: 'change',
         handler: ({ window, screen }: { window: ScaledSize; screen: ScaledSize }) => void,
-    ): void;
+    ): EmitterSubscription;
 
     /**
      * Remove an event listener
+     * @deprecated Use `remove` on the EventSubscription from `addEventListener`.
      *
      * @param type the type of event
      * @param handler the event handler
@@ -6824,6 +6851,11 @@ export interface ScrollViewProps extends ViewProps, ScrollViewPropsIOS, ScrollVi
     showsVerticalScrollIndicator?: boolean | undefined;
 
     /**
+     * When true, Sticky header is hidden when scrolling down, and dock at the top when scrolling up.
+    */
+    stickyHeaderHiddenOnScroll?: boolean;
+
+    /**
      * Style
      */
     style?: StyleProp<ViewStyle> | undefined;
@@ -6888,6 +6920,14 @@ export interface ScrollViewProps extends ViewProps, ScrollViewPropsIOS, ScrollVi
      * touches to occur while scrolling. The default value is false.
      */
     disableScrollViewPanResponder?: boolean | undefined;
+
+    /**
+     * A React Component that will be used to render sticky headers, should be used together with
+     * stickyHeaderIndices. You may need to set this component if your sticky header uses custom
+     * transforms, for example, when you want your list to have an animated and hidable header.
+     * If component have not been provided, the default ScrollViewStickyHeader component will be used.
+     */
+    StickyHeaderComponent?: React.ComponentType<any> | undefined;
 }
 
 declare class ScrollViewComponent extends React.Component<ScrollViewProps> {}
@@ -7252,13 +7292,6 @@ export interface AccessibilityInfoStatic {
     isScreenReaderEnabled: () => Promise<boolean>;
 
     /**
-     * Query whether a screen reader is currently enabled.
-     *
-     * @deprecated use isScreenReaderChanged instead
-     */
-    fetch: () => Promise<boolean>;
-
-    /**
      * Add an event handler. Supported events:
      * - announcementFinished: iOS-only event. Fires when the screen reader has finished making an announcement.
      *                         The argument to the event handler is a dictionary with these keys:
@@ -7269,14 +7302,16 @@ export interface AccessibilityInfoStatic {
      *            The boolean is true when the related event's feature is enabled and false otherwise.
      *
      */
-    addEventListener(eventName: AccessibilityChangeEventName, handler: AccessibilityChangeEventHandler): void;
+    addEventListener(eventName: AccessibilityChangeEventName, handler: AccessibilityChangeEventHandler): EmitterSubscription;
     addEventListener(
         eventName: AccessibilityAnnouncementEventName,
         handler: AccessibilityAnnouncementFinishedEventHandler,
-    ): void;
+    ): EmitterSubscription;
 
     /**
-     * Remove an event handler.
+     * @deprecated Use the `remove()` method on the event subscription returned by `addEventListener()`.
+     *
+     * Remove an event handler
      */
     removeEventListener(eventName: AccessibilityChangeEventName, handler: AccessibilityChangeEventHandler): void;
     removeEventListener(
@@ -7293,6 +7328,14 @@ export interface AccessibilityInfoStatic {
      * Post a string to be announced by the screen reader.
      */
     announceForAccessibility: (announcement: string) => void;
+
+    /**
+     * Gets the timeout in millisecond that the user needs.
+     * This value is set in "Time to take action (Accessibility timeout)" of "Accessibility" settings.
+     *
+     * @platform android
+     */
+    getRecommendedTimeoutMillis: (originalTimeout: number) => Promise<number>;
 }
 
 /**
@@ -7391,14 +7434,17 @@ export type AppStateStatus = 'active' | 'background' | 'inactive' | 'unknown' | 
 
 export interface AppStateStatic {
     currentState: AppStateStatus;
+    isAvailable: boolean;
 
     /**
      * Add a handler to AppState changes by listening to the change event
      * type and providing the handler
      */
-    addEventListener(type: AppStateEvent, listener: (state: AppStateStatus) => void): void;
+    addEventListener(type: AppStateEvent, listener: (state: AppStateStatus) => void): NativeEventSubscription;
 
     /**
+     * @deprecated Use the `remove()` method on the event subscription returned by `addEventListener()`.
+     *
      * Remove a handler by passing the change event type and the handler
      */
     removeEventListener(type: AppStateEvent, listener: (state: AppStateStatus) => void): void;
@@ -7508,6 +7554,7 @@ export interface ButtonProps {
      * Used to locate this button in end-to-end tests.
      */
     testID?: string | undefined;
+    accessibilityState?: AccessibilityState | undefined;
 }
 
 export class Button extends React.Component<ButtonProps> {}
@@ -7691,12 +7738,13 @@ export interface LinkingStatic extends NativeEventEmitter {
      * Add a handler to Linking changes by listening to the `url` event type
      * and providing the handler
      */
-    addEventListener(type: string, handler: (event: { url: string }) => void): void;
+    addEventListener(type: 'url', handler: (event: { url: string }) => void): EmitterSubscription;
 
     /**
      * Remove a handler by passing the `url` event type and the handler
+     * @deprecated Call remove() on the return value of addEventListener() instead.
      */
-    removeEventListener(type: string, handler: (event: { url: string }) => void): void;
+    removeEventListener(type: 'url', handler: (event: { url: string }) => void): void;
 
     /**
      * Try to open the given url with any of the installed apps.
@@ -7889,6 +7937,7 @@ export type Permission =
     | 'android.permission.GET_ACCOUNTS'
     | 'android.permission.ACCESS_FINE_LOCATION'
     | 'android.permission.ACCESS_COARSE_LOCATION'
+    | 'android.permission.ACCESS_BACKGROUND_LOCATION'
     | 'android.permission.RECORD_AUDIO'
     | 'android.permission.READ_PHONE_STATE'
     | 'android.permission.CALL_PHONE'
@@ -8546,6 +8595,8 @@ export interface UIManagerStatic {
         Commands: { [key: string]: number };
     };
 
+    hasViewManagerConfig: (name: string) => boolean;
+
     /**
      * Used to call a native view method from JavaScript
      *
@@ -8580,7 +8631,7 @@ export interface SwitchPropsIOS extends ViewProps {
 }
 
 export interface SwitchChangeEvent extends React.SyntheticEvent {
-    value: boolean
+    value: boolean;
 }
 
 export interface SwitchProps extends SwitchPropsIOS {
@@ -8698,10 +8749,12 @@ export namespace Appearance {
     /**
      * Add an event handler that is fired when appearance preferences change.
      */
-    export function addChangeListener(listener: AppearanceListener): void;
+    export function addChangeListener(listener: AppearanceListener): NativeEventSubscription;
 
     /**
-     * Remove an event handler.
+     * @deprecated Use the `remove()` method on the event subscription returned by `addEventListener()`.
+     *
+     * Remove a handler by passing the change event type and the handler.
      */
     export function removeChangeListener(listener: AppearanceListener): void;
 }
@@ -9149,10 +9202,14 @@ export namespace Animated {
     export interface AnimatedComponent<T extends React.ComponentType<any>>
         extends React.FC<AnimatedProps<React.ComponentPropsWithRef<T>>> {}
 
+    export type AnimatedComponentOptions = {
+        collapsable?: boolean;
+    };
+
     /**
      * Make any React component Animatable.  Used to create `Animated.View`, etc.
      */
-    export function createAnimatedComponent<T extends React.ComponentType<any>>(component: T): AnimatedComponent<T>;
+    export function createAnimatedComponent<T extends React.ComponentType<any>>(component: T, options?: AnimatedComponentOptions): AnimatedComponent<T>;
 
     /**
      * Animated variants of the basic native views. Accepts Animated.Value for
